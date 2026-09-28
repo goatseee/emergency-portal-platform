@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>扬州市应急综合门户 · App端（三期扩展版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    max-width: 430px;
+    margin: 0 auto;
+    box-shadow: 0 0 24px rgba(0,0,0,0.08);
+  }
+
+  /* ===== 状态栏 + 标题栏 ===== */
+  .status-bar {
+    height: 24px;
+    background: linear-gradient(135deg, #1a3a6e 0%, #0d2752 100%);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+    color: rgba(255,255,255,0.85);
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .app-header {
+    height: 48px;
+    background: linear-gradient(135deg, #1a3a6e 0%, #0d2752 100%);
+    display: flex; align-items: center;
+    padding: 0 14px; gap: 10px;
+    flex-shrink: 0;
+  }
+  .app-header .back-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+  }
+  .app-header .header-title { flex: 1; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; }
+  .app-header .header-title .sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.55); margin-left: 6px; letter-spacing: 2px; }
+  .app-header .msg-btn {
+    position: relative;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .app-header .msg-btn .badge {
+    position: absolute; top: -4px; right: -4px;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    background: #e74c3c; color: #fff;
+    font-size: 9px; font-weight: 600;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #0d2752;
+  }
+
+  /* ===== 可滚动内容区 ===== */
+  .scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 16px; }
+
+  /* ===== 用户卡片 ===== */
+  .user-card {
+    margin: 12px 12px 0;
+    background: linear-gradient(135deg, #1a3a6e 0%, #0d2752 100%);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .user-card .avatar {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, #0082D9, #00b4d8);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 17px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .user-card .u-info { flex: 1; min-width: 0; }
+  .user-card .u-greeting { color: rgba(255,255,255,0.6); font-size: 11px; }
+  .user-card .u-name { color: #fff; font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .user-card .u-role { color: #00b4d8; font-size: 11px; margin-top: 2px; }
+  .user-card .u-weather {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 11px;
+    flex-shrink: 0;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,0.15);
+  }
+  .user-card .u-weather .w-num { font-size: 18px; font-weight: 700; color: #00d9ff; }
+
+  /* ===== 总览统计（5列×2行） ===== */
+  .section-title {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600; color: #1a3a6e;
+    margin: 14px 12px 8px;
+  }
+  .section-title::before { content: ""; width: 4px; height: 14px; background: #0082D9; border-radius: 2px; }
+  .section-title .st-more { margin-left: auto; font-size: 11px; color: #999; font-weight: 400; }
+  .overview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0 12px; }
+  .ov-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 4px 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .ov-item .ov-num { font-size: 17px; font-weight: 700; color: #1a3a6e; font-family: "DIN", "Arial", sans-serif; line-height: 1.1; }
+  .ov-item .ov-num.red { color: #e74c3c; }
+  .ov-item .ov-num.green { color: #2ecc71; }
+  .ov-item .ov-num.cyan { color: #0082D9; }
+  .ov-item .ov-num.orange { color: #ff9f43; }
+  .ov-item .ov-label { font-size: 10px; color: #888; margin-top: 3px; }
+
+  /* ===== 通用卡片 ===== */
+  .card { background: #fff; border-radius: 12px; margin: 12px 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+  .card-header { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
+  .card-header .c-title { font-size: 14px; font-weight: 600; color: #1a3a6e; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .card-header .c-title .dot { width: 4px; height: 14px; background: #0082D9; border-radius: 2px; }
+  .card-header .c-title .src { font-size: 10px; font-weight: 400; color: #aaa; margin-left: 4px; }
+  .card-header .c-title .tag {
+    font-size: 9px; font-weight: 400; color: #fff;
+    background: linear-gradient(135deg, #C8102E, #e74c3c);
+    padding: 1px 8px; border-radius: 10px;
+  }
+  .card-header .c-title .tag.blue { background: linear-gradient(135deg, #0082D9, #00b4d8); }
+  .card-header .c-more { font-size: 11px; color: #999; cursor: pointer; }
+  .card-body { padding: 12px 14px; }
+
+  /* ===== 我的应用 ===== */
+  .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 6px; }
+  .app-item { text-align: center; cursor: pointer; }
+  .app-item .icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 5px; font-size: 20px; }
+  .app-item .name { font-size: 11px; color: #555; }
+  .icon-blue { background: #e8f4fd; color: #0082D9; }
+  .icon-green { background: #e8f8ec; color: #2ecc71; }
+  .icon-orange { background: #fff5e6; color: #ff9f43; }
+  .icon-red { background: #fdeaea; color: #e74c3c; }
+  .icon-purple { background: #f3eef9; color: #9b59b6; }
+  .icon-teal { background: #e0f7f4; color: #1abc9c; }
+  .icon-dark { background: #eae6f8; color: #6c5ce7; }
+
+  /* ===== 数据块 ===== */
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; }
+  .data-block { background: #f8f9fb; border-radius: 8px; padding: 10px 12px; }
+  .data-block.span2 { grid-column: span 2; }
+  .data-block .block-title { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .data-block .block-title::before { content: ""; width: 3px; height: 11px; background: #0082D9; border-radius: 2px; }
+  .data-block .block-title.red::before { background: #e74c3c; }
+  .data-block .block-title.orange::before { background: #ff9f43; }
+  .data-block .block-title.green::before { background: #2ecc71; }
+  .data-block .block-title.purple::before { background: #9b59b6; }
+  .data-block .block-value { font-size: 20px; font-weight: 700; color: #1a3a6e; font-family: "DIN", "Arial", sans-serif; }
+  .data-block .block-value .unit { font-size: 11px; font-weight: 400; color: #888; margin-left: 2px; }
+  .data-block .block-value.red { color: #e74c3c; }
+  .data-block .block-value.green { color: #2ecc71; }
+  .data-block .block-value.orange { color: #ff9f43; }
+  .data-block .block-desc { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .data-block .mini-row { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 4px; }
+  .data-block .mini-row .mini-pair { display: flex; align-items: center; gap: 3px; background: #fff; border-radius: 4px; padding: 2px 6px; }
+  .data-block .mini-row .mini-label { font-size: 10px; color: #777; }
+  .data-block .mini-row .mini-value { font-size: 13px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+  .data-block .mini-row .mini-value.red { color: #e74c3c; }
+  .data-block .mini-row .mini-value.orange { color: #ff9f43; }
+  .data-block .mini-row .mini-value.green { color: #2ecc71; }
+
+  /* 四色分级预警条 */
+  .warn-bar { display: flex; gap: 4px; margin-top: 6px; }
+  .warn-bar .wb-item { flex: 1; border-radius: 6px; padding: 5px 4px; text-align: center; color: #fff; }
+  .warn-bar .wb-item .wb-num { font-size: 15px; font-weight: 700; font-family: "DIN","Arial",sans-serif; }
+  .warn-bar .wb-item .wb-label { font-size: 9px; opacity: 0.9; margin-top: 1px; }
+  .warn-bar .wb-red { background: #e74c3c; }
+  .warn-bar .wb-orange { background: #ff9f43; }
+  .warn-bar .wb-yellow { background: #f1c40f; }
+  .warn-bar .wb-blue { background: #3498db; }
+
+  .dual-prevent { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+  .dual-prevent .dp-item { background: #f0f4f8; border-radius: 6px; padding: 8px 6px; text-align: center; }
+  .dual-prevent .dp-item .dp-num { font-size: 16px; font-weight: 700; color: #0082D9; font-family: "DIN","Arial",sans-serif; }
+  .dual-prevent .dp-item .dp-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+  .special-ops { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; justify-content: center; }
+  .special-ops .op-tag { background: #f0f4f8; border-radius: 4px; padding: 3px 8px; font-size: 11px; color: #555; }
+  .special-ops .op-tag .op-num { font-weight: 700; color: #0082D9; }
+
+  .key-enterprises { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .key-enterprises .kep-tag { background: #f3eef9; color: #9b59b6; border-radius: 4px; padding: 3px 8px; font-size: 11px; }
+  .key-enterprises .kep-tag .kep-num { font-weight: 700; font-family: "DIN","Arial",sans-serif; }
+
+  .access-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+  .access-item { background: #f0f4f8; border-radius: 6px; padding: 8px; text-align: center; }
+  .access-item .access-num { font-size: 18px; font-weight: 700; color: #0082D9; font-family: "DIN","Arial",sans-serif; }
+  .access-item .access-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+  .score-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .score-bar .seg.s1 { background: #2ecc71; }
+  .score-bar .seg.s2 { background: #a9d977; }
+  .score-bar .seg.s3 { background: #ff9f43; }
+  .score-bar .seg.s4 { background: #ff6b6b; }
+  .score-bar .seg.s5 { background: #e74c3c; }
+  .score-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .score-legend .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #777; }
+  .score-legend .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* 排名列表 */
+  .rank-list { margin-top: 6px; }
+  .rank-list .rk-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 11px; }
+  .rank-list .rk-row .rk-no { width: 16px; height: 16px; border-radius: 4px; background: #0082D9; color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rank-list .rk-row .rk-no.r2 { background: #00b4d8; }
+  .rank-list .rk-row .rk-no.warn { background: #e74c3c; }
+  .rank-list .rk-row .rk-name { color: #555; flex: 1; }
+  .rank-list .rk-row .rk-score { font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+
+  /* ===== 生命线（横向滑动） ===== */
+  .lifeline-scroll { display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+  .lifeline-card { flex: 0 0 220px; background: #f8f9fb; border-radius: 8px; padding: 12px; border-top: 3px solid #0082D9; }
+  .lifeline-card.gas { border-top-color: #ff9f43; }
+  .lifeline-card.water { border-top-color: #0082D9; }
+  .lifeline-card.rain { border-top-color: #4FC3F7; }
+  .lifeline-card.bridge { border-top-color: #9b59b6; }
+  .lifeline-card .lf-title { font-size: 13px; font-weight: 600; color: #1a3a6e; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .lf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .lf-stat { background: #fff; border-radius: 6px; padding: 6px 8px; }
+  .lf-stat .lf-num { font-size: 16px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+  .lf-stat .lf-num.red { color: #e74c3c; }
+  .lf-stat .lf-num.green { color: #2ecc71; }
+  .lf-stat .lf-label { font-size: 10px; color: #888; margin-top: 1px; }
+  .lf-more { margin-top: 8px; font-size: 10px; color: #999; text-align: right; }
+
+  /* ===== 专家库 ===== */
+  .expert-total { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+  .expert-total .et-num { font-size: 32px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; line-height: 1; }
+  .expert-total .et-label { font-size: 11px; color: #888; margin-top: 2px; }
+  .expert-total .et-levels { flex: 1; display: flex; gap: 8px; }
+  .expert-total .et-level { flex: 1; background: #f8f9fb; border-radius: 6px; padding: 8px; text-align: center; }
+  .expert-total .et-level .el-num { font-size: 16px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+  .expert-total .et-level .el-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .expert-fields { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .expert-fields .ef-tag { background: #f0f4f8; border-radius: 4px; padding: 3px 8px; font-size: 11px; color: #555; }
+  .expert-fields .ef-tag .ef-num { font-weight: 700; color: #0082D9; font-family: "DIN","Arial",sans-serif; }
+  .expert-dispatch-title { font-size: 11px; color: #888; margin-bottom: 6px; }
+  .expert-dispatch-list .ed-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f5f5f5; }
+  .expert-dispatch-list .ed-item:last-child { border-bottom: none; }
+  .expert-dispatch-list .ed-item .ed-avatar { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0; }
+  .expert-dispatch-list .ed-item .ed-content { flex: 1; min-width: 0; }
+  .expert-dispatch-list .ed-item .ed-name { font-size: 12px; color: #333; font-weight: 500; }
+  .expert-dispatch-list .ed-item .ed-desc { font-size: 10px; color: #999; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .expert-dispatch-list .ed-item .ed-status { font-size: 10px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+  .expert-dispatch-list .ed-item .ed-status.active { background: #e8f8ec; color: #2ecc71; }
+  .expert-dispatch-list .ed-item .ed-status.pending { background: #fff5e6; color: #ff9f43; }
+
+  /* ===== 指挥中心 ===== */
+  .cmd-alert-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; background: linear-gradient(135deg, #e8f4fd, #d0e8fa); border: 1px solid #b8d8f0; }
+  .cmd-alert-bar .alert-icon { font-size: 20px; }
+  .cmd-alert-bar .alert-text { flex: 1; }
+  .cmd-alert-bar .alert-level { font-size: 14px; font-weight: 700; color: #0082D9; }
+  .cmd-alert-bar .alert-desc { font-size: 10px; color: #666; margin-top: 2px; }
+  .cmd-duty { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #f8f9fb; border-radius: 8px; margin-bottom: 10px; }
+  .cmd-duty .duty-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #0082D9, #00b4d8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .cmd-duty .duty-info { flex: 1; min-width: 0; }
+  .cmd-duty .duty-name { font-size: 12px; color: #333; font-weight: 500; }
+  .cmd-duty .duty-role { font-size: 10px; color: #888; margin-top: 2px; }
+  .cmd-duty .duty-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #e8f8ec; color: #2ecc71; }
+  .cmd-events { display: flex; gap: 8px; margin-bottom: 10px; }
+  .cmd-events .ce-item { flex: 1; border-radius: 8px; padding: 9px; text-align: center; }
+  .cmd-events .ce-item.urgent { background: #fdeaea; }
+  .cmd-events .ce-item.warn { background: #fff5e6; }
+  .cmd-events .ce-item .ce-num { font-size: 20px; font-weight: 700; font-family: "DIN","Arial",sans-serif; }
+  .cmd-events .ce-item.urgent .ce-num { color: #e74c3c; }
+  .cmd-events .ce-item.warn .ce-num { color: #ff9f43; }
+  .cmd-events .ce-item .ce-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .cmd-resources { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .cmd-resources .cr-item { background: #f8f9fb; border-radius: 6px; padding: 9px 6px; text-align: center; }
+  .cmd-resources .cr-item .cr-icon { font-size: 16px; margin-bottom: 3px; }
+  .cmd-resources .cr-item .cr-num { font-size: 16px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+  .cmd-resources .cr-item .cr-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .cmd-comm { display: flex; gap: 8px; }
+  .cmd-comm .cc-item { flex: 1; display: flex; align-items: center; gap: 5px; background: #f8f9fb; border-radius: 6px; padding: 7px 8px; }
+  .cmd-comm .cc-item .cc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .cmd-comm .cc-item .cc-dot.online { background: #2ecc71; box-shadow: 0 0 4px rgba(46,204,113,0.5); }
+  .cmd-comm .cc-item .cc-text { font-size: 10px; color: #555; }
+  /* 预案与演练 */
+  .plan-section { border-top: 1px dashed #e0e6ed; padding-top: 8px; margin-top: 10px; }
+  .plan-section .ps-title { font-size: 11px; color: #888; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+  .plan-section .ps-title::before { content: ""; width: 3px; height: 11px; background: #1abc9c; border-radius: 2px; }
+  .plan-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .plan-row .pl-item { background: #f8f9fb; border-radius: 6px; padding: 6px; text-align: center; }
+  .plan-row .pl-item .pl-num { font-size: 15px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; }
+  .plan-row .pl-item .pl-num.orange { color: #ff9f43; }
+  .plan-row .pl-item .pl-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+  /* ===== 物联感知与数据治理 ===== */
+  .iot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .iot-item { background: #f8f9fb; border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px; }
+  .iot-item .iot-icon { font-size: 18px; flex-shrink: 0; }
+  .iot-item .iot-info { flex: 1; min-width: 0; }
+  .iot-item .iot-num { font-size: 16px; font-weight: 700; color: #1a3a6e; font-family: "DIN","Arial",sans-serif; line-height: 1.1; }
+  .iot-item .iot-num.green { color: #2ecc71; }
+  .iot-item .iot-num.blue { color: #0082D9; }
+  .iot-item .iot-num.orange { color: #ff9f43; }
+  .iot-item .iot-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .dg-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .dg-row .dg-item { background: #f0f4f8; border-radius: 6px; padding: 8px 6px; text-align: center; }
+  .dg-row .dg-item .dg-num { font-size: 15px; font-weight: 700; color: #0082D9; font-family: "DIN","Arial",sans-serif; }
+  .dg-row .dg-item .dg-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+  /* ===== AI智能应用 ===== */
+  .ai-stats { display: flex; gap: 10px; margin-bottom: 10px; }
+  .ai-stats .ai-stat { flex: 1; background: linear-gradient(135deg, #f3eef9, #e8f4fd); border-radius: 8px; padding: 8px; text-align: center; }
+  .ai-stats .ai-stat .ai-num { font-size: 17px; font-weight: 700; color: #6c5ce7; font-family: "DIN","Arial",sans-serif; }
+  .ai-stats .ai-stat .ai-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .ai-apps { display: flex; gap: 8px; }
+  .ai-apps .ai-app-item { flex: 1; text-align: center; cursor: pointer; }
+  .ai-apps .ai-app-item .ai-icon { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .ai-apps .ai-app-item .ai-name { font-size: 10px; color: #555; }
+
+  /* ===== 底部导航 ===== */
+  .tab-bar {
+    height: 54px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex; align-items: center; justify-content: space-around;
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tab-bar .tab-item { text-align: center; cursor: pointer; color: #999; }
+  .tab-bar .tab-item .t-icon { font-size: 20px; line-height: 1; }
+  .tab-bar .tab-item .t-name { font-size: 10px; margin-top: 3px; }
+  .tab-bar .tab-item.active { color: #0082D9; }
+</style>
+</head>
+<body>
+
+<!-- ===== 状态栏 ===== -->
+<div class="status-bar">
+  <span>09:41</span>
+  <span>📶 🔋</span>
+</div>
+
+<!-- ===== 顶部标题栏 ===== -->
+<div class="app-header">
+  <div class="back-btn">‹</div>
+  <div class="header-title">应急综合门户<span class="sub">三期扩展版</span></div>
+  <div class="msg-btn">🔔<span class="badge">12</span></div>
+</div>
+
+<!-- ===== 可滚动内容 ===== -->
+<div class="scroll-area">
+
+  <!-- 用户卡片 -->
+  <div class="user-card">
+    <div class="avatar">张</div>
+    <div class="u-info">
+      <div class="u-greeting">下午好，欢迎回来</div>
+      <div class="u-name">张三丰 · 应急管理科</div>
+      <div class="u-role">科长</div>
+    </div>
+    <div class="u-weather">
+      <div class="w-num">26°C</div>
+      <div>阵雨 · 东南风</div>
+    </div>
+  </div>
+
+  <!-- 总览统计（10项） -->
+  <div class="section-title">全市监管总览 <span class="st-more">今日数据</span></div>
+  <div class="overview-grid">
+    <div class="ov-item"><div class="ov-num">1,280</div><div class="ov-label">监管企业</div></div>
+    <div class="ov-item"><div class="ov-num">15,236</div><div class="ov-label">工业建档</div></div>
+    <div class="ov-item"><div class="ov-num orange">42</div><div class="ov-label">重大危险源</div></div>
+    <div class="ov-item"><div class="ov-num red">326</div><div class="ov-label">隐患数量</div></div>
+    <div class="ov-item"><div class="ov-num green">86.5%</div><div class="ov-label">整改率</div></div>
+    <div class="ov-item"><div class="ov-num cyan">56</div><div class="ov-label">执法检查</div></div>
+    <div class="ov-item"><div class="ov-num">23</div><div class="ov-label">处罚案件</div></div>
+    <div class="ov-item"><div class="ov-num">418</div><div class="ov-label">专家库</div></div>
+    <div class="ov-item"><div class="ov-num cyan">2,847</div><div class="ov-label">传感器</div></div>
+    <div class="ov-item"><div class="ov-num cyan">652</div><div class="ov-label">视频监控</div></div>
+  </div>
+
+  <!-- 我的应用 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>我的应用</div>
+      <div class="c-more">管理</div>
+    </div>
+    <div class="card-body">
+      <div class="app-grid">
+        <div class="app-item"><div class="icon icon-blue">🔍</div><div class="name">安全检查</div></div>
+        <div class="app-item"><div class="icon icon-green">⚠</div><div class="name">隐患排查</div></div>
+        <div class="app-item"><div class="icon icon-orange">🚨</div><div class="name">应急响应</div></div>
+        <div class="app-item"><div class="icon icon-red">📋</div><div class="name">值班值守</div></div>
+        <div class="app-item"><div class="icon icon-purple">📖</div><div class="name">预案管理</div></div>
+        <div class="app-item"><div class="icon icon-teal">👥</div><div class="name">专家调度</div></div>
+        <div class="app-item"><div class="icon icon-dark">⚖️</div><div class="name">执法办案</div></div>
+        <div class="app-item"><div class="icon icon-blue">📊</div><div class="name">数据分析</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 危化监管（含重大危险源） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>危化监管<span class="tag">含重大危险源</span></div>
+      <div class="c-more">查看全部 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="data-grid">
+        <div class="data-block">
+          <div class="block-title red">报警信息</div>
+          <div class="block-value red">7<span class="unit">条</span></div>
+          <div class="block-desc">今日新增3条 · 待处置2条</div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">严重</span><span class="mini-value red">1</span></span>
+            <span class="mini-pair"><span class="mini-label">一般</span><span class="mini-value orange">6</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title">危化企业数量</div>
+          <div class="block-value">186<span class="unit">家</span></div>
+          <div class="block-desc">重大危险源企业 42 家</div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">生产</span><span class="mini-value">68</span></span>
+            <span class="mini-pair"><span class="mini-label">经营</span><span class="mini-value">72</span></span>
+            <span class="mini-pair"><span class="mini-label">使用</span><span class="mini-value">46</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title green">今日安全承诺</div>
+          <div class="block-value green">172<span class="unit">/186</span></div>
+          <div class="block-desc">承诺率 92.5%</div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">已承诺</span><span class="mini-value green">172</span></span>
+            <span class="mini-pair"><span class="mini-label">未承诺</span><span class="mini-value red">14</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title orange">今日企业风险预警</div>
+          <div class="block-value orange">23<span class="unit">家</span></div>
+          <div class="block-desc">较昨日 +5 家</div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">重大</span><span class="mini-value red">3</span></span>
+            <span class="mini-pair"><span class="mini-label">较大</span><span class="mini-value orange">8</span></span>
+            <span class="mini-pair"><span class="mini-label">一般</span><span class="mini-value">12</span></span>
+          </div>
+        </div>
+        <div class="data-block span2">
+          <div class="block-title red">重大危险源监测（二期扩展）</div>
+          <div class="mini-row" style="margin-top:0">
+            <span class="mini-pair"><span class="mini-label">储罐区</span><span class="mini-value">42</span></span>
+            <span class="mini-pair"><span class="mini-label">仓库</span><span class="mini-value">18</span></span>
+            <span class="mini-pair"><span class="mini-label">装卸站台</span><span class="mini-value">8</span></span>
+            <span class="mini-pair"><span class="mini-label">包保履职率</span><span class="mini-value green">96.8%</span></span>
+          </div>
+          <div class="warn-bar">
+            <div class="wb-item wb-red"><div class="wb-num">2</div><div class="wb-label">红色</div></div>
+            <div class="wb-item wb-orange"><div class="wb-num">5</div><div class="wb-label">橙色</div></div>
+            <div class="wb-item wb-yellow"><div class="wb-num">12</div><div class="wb-label">黄色</div></div>
+            <div class="wb-item wb-blue"><div class="wb-num">49</div><div class="wb-label">蓝色</div></div>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title">双重预防运行效果</div>
+          <div class="block-value">良好</div>
+          <div class="dual-prevent">
+            <div class="dp-item"><div class="dp-num">96.2%</div><div class="dp-label">隐患排查率</div></div>
+            <div class="dp-item"><div class="dp-num">91.8%</div><div class="dp-label">整改完成率</div></div>
+            <div class="dp-item"><div class="dp-num">487</div><div class="dp-label">排查隐患</div></div>
+            <div class="dp-item"><div class="dp-num">447</div><div class="dp-label">已整改</div></div>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title purple">当日特殊作业</div>
+          <div class="block-value">15<span class="unit">起</span></div>
+          <div class="block-desc">涉及企业 11 家</div>
+          <div class="special-ops">
+            <div class="op-tag">动火 <span class="op-num">5</span></div>
+            <div class="op-tag">受限 <span class="op-num">3</span></div>
+            <div class="op-tag">高处 <span class="op-num">4</span></div>
+            <div class="op-tag">临电 <span class="op-num">2</span></div>
+            <div class="op-tag">吊装 <span class="op-num">1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工贸监管 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>工贸监管</div>
+      <div class="c-more">查看全部 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="data-grid">
+        <div class="data-block">
+          <div class="block-title">工贸企业总数</div>
+          <div class="block-value">1,094<span class="unit">家</span></div>
+          <div class="block-desc">已纳入系统管理</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title purple">重点企业数量</div>
+          <div class="block-value">386<span class="unit">家</span></div>
+          <div class="key-enterprises">
+            <div class="kep-tag">粉尘涉爆 <span class="kep-num">78</span></div>
+            <div class="kep-tag">钢铁 <span class="kep-num">12</span></div>
+            <div class="kep-tag">铝加工 <span class="kep-num">35</span></div>
+            <div class="kep-tag">金属冶炼 <span class="kep-num">96</span></div>
+            <div class="kep-tag">有限空间 <span class="kep-num">165</span></div>
+          </div>
+        </div>
+        <div class="data-block span2">
+          <div class="block-title">传感器接入 / 视频监控接入</div>
+          <div class="access-row">
+            <div class="access-item"><div class="access-num">2,847</div><div class="access-label">传感器接入</div></div>
+            <div class="access-item"><div class="access-num">652</div><div class="access-label">视频监控接入</div></div>
+            <div class="access-item"><div class="access-num">98.6%</div><div class="access-label">传感器在线率</div></div>
+            <div class="access-item"><div class="access-num">96.2%</div><div class="access-label">视频在线率</div></div>
+          </div>
+        </div>
+        <div class="data-block span2">
+          <div class="block-title orange">企业安全风险得分分布</div>
+          <div class="score-bar">
+            <div class="seg s1" style="flex:25"></div>
+            <div class="seg s2" style="flex:30"></div>
+            <div class="seg s3" style="flex:22"></div>
+            <div class="seg s4" style="flex:15"></div>
+            <div class="seg s5" style="flex:8"></div>
+          </div>
+          <div class="score-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>90+ 274家</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#a9d977"></div>80-89 328家</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff9f43"></div>70-79 241家</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b"></div>60-69 164家</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>&lt;60 87家</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工业企业安全监管（新增） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>工业企业安全监管<span class="tag blue">二期新建</span></div>
+      <div class="c-more">查看全部 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="data-grid">
+        <div class="data-block">
+          <div class="block-title">工业企业建档数</div>
+          <div class="block-value">15,236<span class="unit">家</span></div>
+          <div class="block-desc">本月新增 120 家</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title green">完成风险评级</div>
+          <div class="block-value green">12,847<span class="unit">家</span></div>
+          <div class="block-desc">评级覆盖率 84.3%</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title red">高风险企业</div>
+          <div class="block-value red">386<span class="unit">家</span></div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">较大</span><span class="mini-value orange">872</span></span>
+            <span class="mini-pair"><span class="mini-label">一般</span><span class="mini-value">5,689</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title purple">试点监测接入</div>
+          <div class="block-value">24<span class="unit">家</span></div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">冶金</span><span class="mini-value">8</span></span>
+            <span class="mini-pair"><span class="mini-label">铝加工</span><span class="mini-value">6</span></span>
+            <span class="mini-pair"><span class="mini-label">涉氨</span><span class="mini-value">7</span></span>
+            <span class="mini-pair"><span class="mini-label">矿山</span><span class="mini-value">3</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title">监管任务完成率</div>
+          <div class="block-value">92.3<span class="unit">%</span></div>
+          <div class="block-desc">本月任务 156 项 · 完成 144 项</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title orange">县市区监管排名</div>
+          <div class="rank-list">
+            <div class="rk-row"><span class="rk-no">1</span><span class="rk-name">邗江区</span><span class="rk-score">98.2</span></div>
+            <div class="rk-row"><span class="rk-no r2">2</span><span class="rk-name">仪征市</span><span class="rk-score">96.5</span></div>
+            <div class="rk-row"><span class="rk-no warn">!</span><span class="rk-name">宝应县（待提升）</span><span class="rk-score" style="color:#e74c3c">82.4</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 行政执法（新增） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>行政执法<span class="tag blue">三期扩展</span></div>
+      <div class="c-more">查看全部 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="data-grid">
+        <div class="data-block">
+          <div class="block-title">本月执法检查</div>
+          <div class="block-value">56<span class="unit">家</span></div>
+          <div class="block-desc">月度计划 70 家 · 完成率 80%</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title orange">行政处罚案件</div>
+          <div class="block-value orange">23<span class="unit">件</span></div>
+          <div class="mini-row">
+            <span class="mini-pair"><span class="mini-label">简易程序</span><span class="mini-value">15</span></span>
+            <span class="mini-pair"><span class="mini-label">普通程序</span><span class="mini-value">8</span></span>
+          </div>
+        </div>
+        <div class="data-block">
+          <div class="block-title green">案件结案率</div>
+          <div class="block-value green">87.0<span class="unit">%</span></div>
+          <div class="block-desc">在办案件 3 件</div>
+        </div>
+        <div class="data-block">
+          <div class="block-title purple">举报核查</div>
+          <div class="block-value">18<span class="unit">件</span></div>
+          <div class="block-desc">已办结 16 件 · 办结率 88.9%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 生命线监测 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>生命线监测</div>
+      <div class="c-more">← 滑动查看 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="lifeline-scroll">
+        <div class="lifeline-card gas">
+          <div class="lf-title">🔥 燃气</div>
+          <div class="lf-stats">
+            <div class="lf-stat"><div class="lf-num">23</div><div class="lf-label">燃气企业</div></div>
+            <div class="lf-stat"><div class="lf-num">1,286</div><div class="lf-label">管道(km)</div></div>
+            <div class="lf-stat"><div class="lf-num">56</div><div class="lf-label">瓶装点</div></div>
+            <div class="lf-stat"><div class="lf-num">42.7万</div><div class="lf-label">燃气用户</div></div>
+          </div>
+          <div class="lf-more">近7日报警 14 条 · 已处置 11</div>
+        </div>
+        <div class="lifeline-card water">
+          <div class="lf-title">💧 供水</div>
+          <div class="lf-stats">
+            <div class="lf-stat"><div class="lf-num">8</div><div class="lf-label">供水企业</div></div>
+            <div class="lf-stat"><div class="lf-num">15</div><div class="lf-label">水厂/水源地</div></div>
+            <div class="lf-stat"><div class="lf-num">2,430</div><div class="lf-label">管道(km)</div></div>
+            <div class="lf-stat"><div class="lf-num">38.5万吨</div><div class="lf-label">日供水量</div></div>
+          </div>
+          <div class="lf-more">近7天报警 5 · 全部处置</div>
+        </div>
+        <div class="lifeline-card rain">
+          <div class="lf-title">🌧 雨水</div>
+          <div class="lf-stats">
+            <div class="lf-stat"><div class="lf-num">47</div><div class="lf-label">易涝点</div></div>
+            <div class="lf-stat"><div class="lf-num">23</div><div class="lf-label">泵站</div></div>
+            <div class="lf-stat"><div class="lf-num">68</div><div class="lf-label">河道</div></div>
+            <div class="lf-stat"><div class="lf-num">1,560</div><div class="lf-label">管道(km)</div></div>
+          </div>
+          <div class="lf-more">近7天报警 9 · 高风险 5</div>
+        </div>
+        <div class="lifeline-card bridge">
+          <div class="lf-title">🌉 桥梁</div>
+          <div class="lf-stats">
+            <div class="lf-stat"><div class="lf-num">326</div><div class="lf-label">桥梁总数</div></div>
+            <div class="lf-stat"><div class="lf-num">48</div><div class="lf-label">标准化监测</div></div>
+            <div class="lf-stat"><div class="lf-num">86</div><div class="lf-label">轻量化监测</div></div>
+            <div class="lf-stat"><div class="lf-num red">7</div><div class="lf-label">病害桥梁</div></div>
+          </div>
+          <div class="lf-more">近7天报警 3 · 高风险 2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 专家库 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>专家库</div>
+      <div class="c-more">管理</div>
+    </div>
+    <div class="card-body">
+      <div class="expert-total">
+        <div>
+          <div class="et-num">418</div>
+          <div class="et-label">在库专家</div>
+        </div>
+        <div class="et-levels">
+          <div class="et-level"><div class="el-num">86</div><div class="el-label">省级专家</div></div>
+          <div class="et-level"><div class="el-num">182</div><div class="el-label">市级专家</div></div>
+        </div>
+      </div>
+      <div class="expert-fields">
+        <div class="ef-tag">安全工程 <span class="ef-num">126</span></div>
+        <div class="ef-tag">化工 <span class="ef-num">98</span></div>
+        <div class="ef-tag">机械电气 <span class="ef-num">72</span></div>
+        <div class="ef-tag">消防救援 <span class="ef-num">65</span></div>
+        <div class="ef-tag">应急管理 <span class="ef-num">57</span></div>
+      </div>
+      <div class="expert-dispatch-title">近期专家调度</div>
+      <div class="expert-dispatch-list">
+        <div class="ed-item">
+          <div class="ed-avatar" style="background:linear-gradient(135deg,#0082D9,#00b4d8)">李</div>
+          <div class="ed-content">
+            <div class="ed-name">李明华 · 化工安全</div>
+            <div class="ed-desc">扬农化工隐患排查指导 · 08-26派发</div>
+          </div>
+          <span class="ed-status active">执行中</span>
+        </div>
+        <div class="ed-item">
+          <div class="ed-avatar" style="background:linear-gradient(135deg,#ff9f43,#ff6b6b)">张</div>
+          <div class="ed-content">
+            <div class="ed-name">张伟杰 · 消防救援</div>
+            <div class="ed-desc">江都仓储火灾技术支持 · 08-25派发</div>
+          </div>
+          <span class="ed-status active">执行中</span>
+        </div>
+        <div class="ed-item">
+          <div class="ed-avatar" style="background:linear-gradient(135deg,#9b59b6,#bb6bd9)">王</div>
+          <div class="ed-content">
+            <div class="ed-name">王建国 · 机械电气</div>
+            <div class="ed-desc">宝应金属冶炼企业安全评估 · 08-28预计</div>
+          </div>
+          <span class="ed-status pending">待出发</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 指挥中心（含预案演练） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>指挥中心</div>
+      <div class="c-more">进入指挥大厅 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="cmd-alert-bar">
+        <div class="alert-icon">🔵</div>
+        <div class="alert-text">
+          <div class="alert-level">IV级响应（蓝色）</div>
+          <div class="alert-desc">江都区暴雨预警 · 持续监测中</div>
+        </div>
+        <div style="font-size:10px;color:#999">08-26 14:00 启动</div>
+      </div>
+      <div class="cmd-duty">
+        <div class="duty-avatar">王</div>
+        <div class="duty-info">
+          <div class="duty-name">王志远 · 带班领导</div>
+          <div class="duty-role">值班员：刘洋、陈晨、赵雪 · 24h值守</div>
+        </div>
+        <div class="duty-tag">在岗</div>
+      </div>
+      <div class="cmd-events">
+        <div class="ce-item urgent"><div class="ce-num">2</div><div class="ce-label">突发事件</div></div>
+        <div class="ce-item warn"><div class="ce-num">5</div><div class="ce-label">预警信息</div></div>
+        <div class="ce-item" style="background:#f0f4f8"><div class="ce-num" style="color:#0082D9">12</div><div class="ce-label">待办指令</div></div>
+      </div>
+      <div class="cmd-resources">
+        <div class="cr-item"><div class="cr-icon">🚒</div><div class="cr-num">12</div><div class="cr-label">救援队伍</div></div>
+        <div class="cr-item"><div class="cr-icon">📦</div><div class="cr-num">86</div><div class="cr-label">应急物资(类)</div></div>
+        <div class="cr-item"><div class="cr-icon">🏠</div><div class="cr-num">23</div><div class="cr-label">避难场所</div></div>
+      </div>
+      <div class="cmd-comm">
+        <div class="cc-item"><div class="cc-dot online"></div><div class="cc-text">视频会议</div></div>
+        <div class="cc-item"><div class="cc-dot online"></div><div class="cc-text">350M集群</div></div>
+        <div class="cc-item"><div class="cc-dot online"></div><div class="cc-text">110/119联动</div></div>
+      </div>
+      <div class="plan-section">
+        <div class="ps-title">应急预案与演练（三期扩展）</div>
+        <div class="plan-row">
+          <div class="pl-item"><div class="pl-num">86</div><div class="pl-label">预案总数</div></div>
+          <div class="pl-item"><div class="pl-num">34/40</div><div class="pl-label">本年演练</div></div>
+          <div class="pl-item"><div class="pl-num orange">7</div><div class="pl-label">到期提醒</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 物联感知与数据治理（新增） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>物联感知与数据治理</div>
+      <div class="c-more">二期建设成效</div>
+    </div>
+    <div class="card-body">
+      <div class="iot-grid">
+        <div class="iot-item">
+          <span class="iot-icon">📡</span>
+          <div class="iot-info"><div class="iot-num green">16/16</div><div class="iot-label">数据专线在线</div></div>
+        </div>
+        <div class="iot-item">
+          <span class="iot-icon">🔐</span>
+          <div class="iot-info"><div class="iot-num green">10/10</div><div class="iot-label">工业网闸在用</div></div>
+        </div>
+        <div class="iot-item">
+          <span class="iot-icon">🔌</span>
+          <div class="iot-info"><div class="iot-num blue">95.6%</div><div class="iot-label">感知数据接入率</div></div>
+        </div>
+        <div class="iot-item">
+          <span class="iot-icon">🎥</span>
+          <div class="iot-info"><div class="iot-num orange">9</div><div class="iot-label">今日AI识别事件</div></div>
+        </div>
+      </div>
+      <div class="dg-row">
+        <div class="dg-item"><div class="dg-num">93.2%</div><div class="dg-label">数据归集率</div></div>
+        <div class="dg-item"><div class="dg-num">92.5</div><div class="dg-label">数据质量评分</div></div>
+        <div class="dg-item"><div class="dg-num">12,847</div><div class="dg-label">省厅累计报送</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI智能应用（新增） -->
+  <div class="card">
+    <div class="card-header">
+      <div class="c-title"><span class="dot"></span>AI智能应用<span class="tag blue">三期规划</span></div>
+      <div class="c-more">应急百事通 ›</div>
+    </div>
+    <div class="card-body">
+      <div class="ai-stats">
+        <div class="ai-stat"><div class="ai-num">3,268</div><div class="ai-label">应急知识条目</div></div>
+        <div class="ai-stat"><div class="ai-num">4,215</div><div class="ai-label">本年智能问答</div></div>
+      </div>
+      <div class="ai-apps">
+        <div class="ai-app-item"><div class="ai-icon icon-blue">🤖</div><div class="ai-name">应急问答助手</div></div>
+        <div class="ai-app-item"><div class="ai-icon icon-purple">🧠</div><div class="ai-name">智能研判</div></div>
+        <div class="ai-app-item"><div class="ai-icon icon-dark">⚖️</div><div class="ai-name">AI执法小助手</div></div>
+        <div class="ai-app-item"><div class="ai-icon icon-teal">📖</div><div class="ai-name">预案智能管理</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; color:#bbb; font-size:10px; padding: 14px 0 4px;">扬州市应急管理局 · 应急综合门户（三期扩展版） · 赋能</div>
+</div>
+
+<!-- ===== 底部导航 ===== -->
+<div class="tab-bar">
+  <div class="tab-item active"><div class="t-icon">🏠</div><div class="t-name">首页</div></div>
+  <div class="tab-item"><div class="t-icon">📊</div><div class="t-name">数据</div></div>
+  <div class="tab-item"><div class="t-icon">🤖</div><div class="t-name">AI应用</div></div>
+  <div class="tab-item"><div class="t-icon">🔔</div><div class="t-name">消息</div></div>
+  <div class="tab-item"><div class="t-icon">👤</div><div class="t-name">我的</div></div>
+</div>
+
+</body>
+</html>
